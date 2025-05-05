@@ -7,7 +7,18 @@ def get_file():
     for files in os.listdir():
         print(str(file_number) + " " + files)
         file_number += 1
-    file_index = int(input("Pick the number of your quiz file: "))
+
+    while True:
+        try:
+            file_index = int(input("Pick the number of your quiz file: "))
+        except ValueError:
+            print("Please enter a number")
+            continue
+        if file_index == 0 or file_index > len(os.listdir()):
+                print("Number not associated with any file, try again")
+        else:
+            break
+
     quiz_file = os.listdir()[file_index - 1]
 
     if is_json(quiz_file):
