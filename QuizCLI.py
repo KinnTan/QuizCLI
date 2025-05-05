@@ -1,7 +1,18 @@
+import os
 import json
 import random
 
-quiz_data = json.load(open("sample_quiz.json"))  # Loads quiz data from JSON file
+file_number = 1
+for files in os.listdir():
+    print(str(file_number) + " " + files)
+    file_number += 1
+
+file_index = int(input("Pick the number of your quiz file: "))
+
+quiz_file = os.listdir()[file_index - 1]
+quiz_data = json.load(open(quiz_file))
+
+# Loads quiz data from JSON file
 random.shuffle(quiz_data) # Shuffles the quiz data to randomize question order
 correct_answers_counter = 0 # Initialize a counter to track the number of correct answers
 
