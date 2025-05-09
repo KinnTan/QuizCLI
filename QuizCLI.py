@@ -3,16 +3,28 @@ import time
 import json
 import random
 
-def display_logo():
-    print("""\033[32m
-     ██████╗ ██╗   ██╗██╗███████╗    ██████╗██╗     ██╗
-    ██╔═══██╗██║   ██║██║╚══███╔╝   ██╔════╝██║     ██║
-    ██║   ██║██║   ██║██║  ███╔╝    ██║     ██║     ██║
-    ██║▄▄ ██║██║   ██║██║ ███╔╝     ██║     ██║     ██║
-    ╚██████╔╝╚██████╔╝██║███████╗   ╚██████╗███████╗██║
-     ╚══▀▀═╝  ╚═════╝ ╚═╝╚══════╝    ╚═════╝╚══════╝╚═╝
-\033[0m
-    """)
+def display_logo(logo):
+    logo_dictionary = {
+        "title_logo": """\033[32m\033[01m
+         ..|''||   '||'  '|' '||' |'''''||       ..|'''.| '||'      '||' 
+        .|'    ||   ||    |   ||      .|'      .|'     '   ||        ||  
+        ||      ||  ||    |   ||     ||        ||          ||        ||  
+        '|.  '. '|  ||    |   ||   .|'         '|.      .  ||        ||  
+          '|...'|.   '|..'   .||. ||......|     ''|....'  .||.....| .||.                                                                                                                                  
+            \033[0m
+        """,
+        "start_logo": """\033[32m
+         ██████╗  ██╗   ██╗ ██╗ ███████╗     ██████╗ ██╗      ██╗
+        ██╔═══██╗ ██║   ██║ ██║ ╚══███╔╝    ██╔════╝ ██║      ██║
+        ██║   ██║ ██║   ██║ ██║   ███╔╝     ██║      ██║      ██║
+        ██║▄▄ ██║ ██║   ██║ ██║  ███╔╝      ██║      ██║      ██║
+        ╚██████╔╝ ╚██████╔╝ ██║ ███████╗    ╚██████╗ ███████╗ ██║
+         ╚══▀▀═╝   ╚═════╝  ╚═╝ ╚══════╝     ╚═════╝ ╚══════╝ ╚═╝
+    \033[0m
+        """
+    }
+
+    print(logo_dictionary[logo])
 
 def loading_animation(duration, message):
     spinner = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
@@ -32,6 +44,9 @@ def clear_screen():
 # Get and validate a quiz file from the current directory
 def get_file():
     file_number = 1
+    loading_animation(0.01, "Looking for files in the current directory")
+    clear_screen()
+    display_logo("start_logo")
     print("Files in the Current Directory")
     for files in os.listdir(): # Lists all files in the current directory with numbers
         print(f"{file_number}. {files}")
@@ -107,6 +122,7 @@ def run_quiz(quiz_data):
     correct_answers_counter = 0  # Initialize a counter to track the number of correct answers
     progress = 1
     for question_item in quiz_data:  # Loops through each question in the quiz data
+        display_logo("title_logo")
         progress_bar(quiz_data, progress)
         print(f"\n{question_item["question"]}")
         for choice_letter in question_item["choices"]:  # Loops through each choice option
@@ -125,10 +141,25 @@ def run_quiz(quiz_data):
 
     final_score = str(correct_answers_counter) + "/" + str(len(quiz_data))  # format of final_score
     print("Your final score is " + str(final_score))
+    exit_quiz()
+
+def exit_quiz():
+    while True:
+        exit_prompt = input("\nTo Try another Quiz? Type 't' for Try Again or 'e' to Exit: ").strip().lower()
+        if exit_prompt == "t":
+            print("\nExiting current quiz\n")
+            main()
+            break
+        elif exit_prompt == "e":
+            print("\033[091m\nExiting QuizCLI...033[0m")
+            exit()
+        else:
+            print("\033[91mInvalid input. Please enter 't' to try another Quiz or 'e' to exit.\033[0m")
 
 def main():
     clear_screen()
 
+    display_logo("start_logo")
     quiz_data = json.load(open(get_file())) # Get and load quiz file
     loading_animation(0.1, "quiz is valid")
 
@@ -141,4 +172,7 @@ def main():
     clear_screen()
     run_quiz(quiz_data)
 
-main()
+try:
+    main()
+except KeyboardInterrupt:
+    print("\033[091m\nExiting...\033[0m")
