@@ -93,12 +93,8 @@ def is_valid_quiz(quiz_data):
                 return False
     return True
 
-def main():
-    quiz_data = json.load(open(get_file())) # Get and load quiz file
-
-    random.shuffle(quiz_data)  # Shuffles the quiz data to randomize question order
+def run_quiz(quiz_data):
     correct_answers_counter = 0  # Initialize a counter to track the number of correct answers
-
     for question_item in quiz_data:  # Loops through each question in the quiz data
         print(question_item["question"])
         for choice_letter in question_item["choices"]:  # Loops through each choice option
@@ -111,10 +107,25 @@ def main():
         if user_response == question_item["correct_answer"]:
             correct_answers_counter += 1
             print("Correct!")
+            os.system('cls')
         else:
             print("Incorrect!")
+            os.system('cls')
 
     final_score = str(correct_answers_counter) + "/" + str(len(quiz_data))  # format of final_score
     print("Your final score is " + str(final_score))
+
+def main():
+    quiz_data = json.load(open(get_file())) # Get and load quiz file
+    loading_animation(0.1, "quiz is valid")
+    os.system('cls')
+    loading_animation(1, "quiz is valid")
+
+    random.shuffle(quiz_data)  # Shuffles the quiz data to randomize question order
+
+    loading_animation(1, "Starting Quiz")
+    os.system('cls')
+    run_quiz(quiz_data)
+
 
 main()
