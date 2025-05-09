@@ -49,7 +49,12 @@ def get_file(error_message=None):
     file_number = 1
     clear_screen()
     display_logo("start_logo")
-    loading_animation(250, "Scanning current directory for files...")
+
+    if error_message:
+        loading_animation(250, "\033[91mError... \033[0m Rescanning current directory for files...")
+    else:
+        loading_animation(250, "Scanning current directory for files...")
+
     clear_screen()
     display_logo("start_logo")
 
@@ -65,27 +70,30 @@ def get_file(error_message=None):
         if file_index == 0 or file_index > len(os.listdir()):  # Checks if number is within valid range
             return get_file("\033[91mThat number doesn't match any file. Please choose a valid number from the list above.\033[0m")
         quiz_file = os.listdir()[file_index - 1]  # Gets the file name based on the user selection
-        if not is_json(quiz_file):  # Checks if file is a valid JSON
+
+        json_error = validate_json(quiz_file)
+
+        if not json_error:  # Checks if file is a valid JSON
             if is_valid_quiz(json.load(open(quiz_file))):  # Checks the quiz file format
                 return quiz_file
             else:
-                return get_file("The selected file appears to be malformed. Please choose another file.")
-        elif is_json(quiz_file):
-            get_file(is_json(quiz_file))
+                return get_file("\033[91mThe selected file appears to be malformed. Please choose another file.\033[0m")
+        elif json_error:
+            return get_file(json_error)
         else:
             return get_file()
     except ValueError:  # Handles non-numeric input
         return get_file("\033[91mInvalid input. Please enter a number.\033[0m")
 
 # Validates the selected file is a proper JSON quiz file
-def is_json(quiz_file):
+def validate_json(quiz_file):
     # Ensure file ends with .json extension
     if not quiz_file.endswith(".json"):
-        return "This is not a JSON file. Please select a file with a .json extension."
+        return "\033[91mThat is not a JSON file. Please select a file with a .json extension.\033[0m"
     try: # Attempt to load the JSON file
         json.load(open(quiz_file))
     except json.decoder.JSONDecodeError: # Handle empty or invalid JSON
-        return "This JSON file is empty or corrupted. Please select a different file."
+        return "\033[91mThat JSON file is empty or corrupted. Please select a different file.\033[0m"
     return None
 
 # Check if the JSON data contains a valid quiz structure
@@ -157,13 +165,15 @@ def exit_quiz():
 
 def main():
     clear_screen()
-
     display_logo("start_logo")
+
     quiz_data = json.load(open(get_file())) # Get and load quiz file
     loading_animation(300, "Verifying quiz file structure...")
+
     clear_screen()
     loading_animation(700, "Quiz file verified successfully")
     random.shuffle(quiz_data)  # Shuffles the quiz data to randomize question order
+
     clear_screen()
     loading_animation(700, "Starting the quiz...")
 
