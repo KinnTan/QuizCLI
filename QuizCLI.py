@@ -26,6 +26,9 @@ def loading_animation(duration, message):
         if time.time() - start_time > duration:
             break
 
+def clear_screen():
+    os.system('cls')
+
 # Get and validate a quiz file from the current directory
 def get_file():
     file_number = 1
@@ -93,39 +96,49 @@ def is_valid_quiz(quiz_data):
                 return False
     return True
 
+def progress_bar(quiz_data, progress, bar_length = 50):
+    quiz_length = len(quiz_data)
+    percentage = progress / quiz_length
+    filled_len = int(bar_length*percentage)
+    bar = '█' * filled_len + '-' * (bar_length - filled_len)
+    print(f"\rProgress: |{bar}| {progress}/{quiz_length} ({percentage*100:.0f}%)", flush=True)
+
 def run_quiz(quiz_data):
     correct_answers_counter = 0  # Initialize a counter to track the number of correct answers
+    progress = 1
     for question_item in quiz_data:  # Loops through each question in the quiz data
-        print(question_item["question"])
+        progress_bar(quiz_data, progress)
+        print(f"\n{question_item["question"]}")
         for choice_letter in question_item["choices"]:  # Loops through each choice option
             print(choice_letter + ". " + question_item["choices"][
                 choice_letter])  # Prints the choice letter and its corresponding answer text
 
         user_response = input("Enter the correct choice: ")  # Prompt to input answer
-
+        progress += 1
         # Checks if the user's answer matches the correct answer
         if user_response == question_item["correct_answer"]:
             correct_answers_counter += 1
             print("Correct!")
-            os.system('cls')
         else:
             print("Incorrect!")
-            os.system('cls')
+        clear_screen()
 
     final_score = str(correct_answers_counter) + "/" + str(len(quiz_data))  # format of final_score
     print("Your final score is " + str(final_score))
 
 def main():
+    clear_screen()
+
     quiz_data = json.load(open(get_file())) # Get and load quiz file
     loading_animation(0.1, "quiz is valid")
-    os.system('cls')
+
+    clear_screen()
+
     loading_animation(1, "quiz is valid")
-
     random.shuffle(quiz_data)  # Shuffles the quiz data to randomize question order
-
     loading_animation(1, "Starting Quiz")
-    os.system('cls')
-    run_quiz(quiz_data)
 
+    clear_screen()
+    run_quiz(quiz_data)
 
 main()
