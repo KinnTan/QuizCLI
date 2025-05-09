@@ -1,22 +1,47 @@
 import os
+import time
 import json
 import random
+
+def display_logo():
+    print("""\033[32m
+     ██████╗ ██╗   ██╗██╗███████╗    ██████╗██╗     ██╗
+    ██╔═══██╗██║   ██║██║╚══███╔╝   ██╔════╝██║     ██║
+    ██║   ██║██║   ██║██║  ███╔╝    ██║     ██║     ██║
+    ██║▄▄ ██║██║   ██║██║ ███╔╝     ██║     ██║     ██║
+    ╚██████╔╝╚██████╔╝██║███████╗   ╚██████╗███████╗██║
+     ╚══▀▀═╝  ╚═════╝ ╚═╝╚══════╝    ╚═════╝╚══════╝╚═╝
+\033[0m
+    """)
+
+def loading_animation(duration, message):
+    spinner = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+    start_time = time.time() # Record the start time to track the duration
+    while True:
+        for i in spinner:
+            print(f"\r{i} {message}", end="") # Print the spinner and message on the same line
+            time.sleep(0.1) # Pause briefly to create the animation effect
+
+        # Check if the total elapsed time has exceeded the specified duration
+        if time.time() - start_time > duration:
+            break
 
 # Get and validate a quiz file from the current directory
 def get_file():
     file_number = 1
+    print("Files in the Current Directory")
     for files in os.listdir(): # Lists all files in the current directory with numbers
-        print(str(file_number) + " " + files)
+        print(f"{file_number}. {files}")
         file_number += 1
 
     while True: # Prompts user until they pick a valid file number
         try:
-            file_index = int(input("Pick the number of your quiz file: "))
+            file_index = int(input("Enter the number corresponding to your quiz file: "))
         except ValueError: # Handles non-numeric input
-            print("Please enter a number")
+            print("Invalid input. Please enter a number.")
             continue
         if file_index == 0 or file_index > len(os.listdir()): # Checks if number is within valid range
-                print("Number not associated with any file, try again")
+                print("That number doesn't match any file. Please choose a valid number from the list above.")
         else:
             break
 
@@ -27,7 +52,7 @@ def get_file():
         if is_valid_quiz(json.load(open(quiz_file))): # Checks the quiz file format
             return quiz_file
         else:
-            print("Quiz file invalid, Try Again")
+            print("The selected file appears to be malformed. Please choose another file.")
             return get_file()
     else:
         return get_file() # Retry selection if not valid
@@ -36,13 +61,13 @@ def get_file():
 def is_json(quiz_file):
     # Ensure file ends with .json extension
     while not quiz_file.endswith(".json"):
-        print("File not a quiz json file, Try Again")
+        print("This is not a JSON file. Please select a file with a .json extension.")
         return False
     else:
         try: # Attempt to load the JSON file
             json.load(open(quiz_file))
         except json.decoder.JSONDecodeError: # Handle empty or invalid JSON
-            print("File is empty, Try Again")
+            print("This JSON file is empty or corrupted. Please select a different file.")
             return False
         return True
 
