@@ -5,7 +5,7 @@ import random
 
 def display_logo(logo):
     logo_dictionary = {
-        "title_logo": """\033[32m\033[01m
+        "title_logo": """\x1b[38;5;37m\033[01m
          ..|''||   '||'  '|' '||' |'''''||       ..|'''.| '||'      '||' 
         .|'    ||   ||    |   ||      .|'      .|'     '   ||        ||  
         ||      ||  ||    |   ||     ||        ||          ||        ||  
@@ -13,7 +13,7 @@ def display_logo(logo):
           '|...'|.   '|..'   .||. ||......|     ''|....'  .||.....| .||.                                                                                                                                  
             \033[0m
         """,
-        "start_logo": """\033[32m
+        "start_logo": """\x1b[38;5;37m
          ██████╗  ██╗   ██╗ ██╗ ███████╗     ██████╗ ██╗      ██╗
         ██╔═══██╗ ██║   ██║ ██║ ╚══███╔╝    ██╔════╝ ██║      ██║
         ██║   ██║ ██║   ██║ ██║   ███╔╝     ██║      ██║      ██║
@@ -40,6 +40,7 @@ def loading_animation(duration, message):
         # Check if the total elapsed time has exceeded the specified duration
         if time.time() - start_time > duration_in_seconds:
             break
+    clear_screen()
 
 def clear_screen():
     os.system('cls')
@@ -51,9 +52,9 @@ def get_file(error_message=None):
     display_logo("start_logo")
 
     if error_message:
-        loading_animation(250, "\033[91mError... \033[0m Rescanning current directory for files...")
+        loading_animation(250, "\033[91mError... \x1b[38;5;117m Rescanning current directory for files...")
     else:
-        loading_animation(250, "Scanning current directory for files...")
+        loading_animation(250, "\x1b[38;5;117mScanning current directory for files...")
 
     clear_screen()
     display_logo("start_logo")
@@ -61,14 +62,14 @@ def get_file(error_message=None):
     if error_message is not None:
         print(error_message)
 
-    print("\033[32m\033[01mFiles in the Current Directory\033[0m")
+    print("\x1b[38;5;74m\033[01mFiles in the Current Directory\033[0m")
     for files in os.listdir(): # Lists all files in the current directory with numbers
-        print(f"{file_number}. \033[093m{files}\033[0m")
+        print(f"\033[97m\033[01m{file_number}. \033[0m\033[093m{files}\033[0m")
         file_number += 1
     try:
-        file_index = int(input("Enter the number corresponding to your quiz file: "))
+        file_index = int(input("\x1b[38;5;74m\033[01mEnter the number corresponding to your quiz file: "))
         if file_index == 0 or file_index > len(os.listdir()):  # Checks if number is within valid range
-            return get_file("\033[91mThat number doesn't match any file. Please choose a valid number from the list above.\033[0m")
+            return get_file("\033[91m\033[01mThat number doesn't match any file. Please choose a valid number from the list above.\033[0m")
         quiz_file = os.listdir()[file_index - 1]  # Gets the file name based on the user selection
 
         json_error = validate_json(quiz_file)
@@ -122,37 +123,58 @@ def progress_bar(quiz_data, progress, bar_length = 50):
     quiz_length = len(quiz_data)
     percentage = progress / quiz_length
     filled_len = int(bar_length*percentage)
-    bar = '█' * filled_len + '-' * (bar_length - filled_len)
-    print(f"\rProgress: |{bar}| {progress}/{quiz_length} ({percentage*100:.0f}%)", flush=True)
+    bar = '\x1b[38;5;37m█\033[0m' * filled_len + '\033[97m-' * (bar_length - filled_len)
+    print(f"\r\x1b[38;5;74mProgress: \033[97m|{bar}| \x1b[38;5;74m{progress}/{quiz_length} ({percentage*100:.0f}%)\033[0m", flush=True)
 
 def run_quiz(quiz_data):
     correct_answers_counter = 0  # Initialize a counter to track the number of correct answers
     progress = 1
-    for question_item in quiz_data:  # Loops through each question in the quiz data
+    invalid_letter = False
+
+    while True:
         display_logo("title_logo")
         progress_bar(quiz_data, progress)
-        print(f"\n{question_item["question"]}")
+
+        if progress >= len(quiz_data):
+            break
+
+        question_item = quiz_data[progress]
+        print(f"\n\033[97m{question_item["question"]}\033[0m")
         for choice_letter in question_item["choices"]:  # Loops through each choice option
-            print(choice_letter + ". " + question_item["choices"][
-                choice_letter])  # Prints the choice letter and its corresponding answer text
+            print(f"\033[97m\033[01m{choice_letter}. \033[93m{question_item["choices"][choice_letter]}\033[0m")  # Prints the choice letter and its corresponding answer text
 
-        user_response = input("Your answer")  # Prompt to input answer
-        progress += 1
-        # Checks if the user's answer matches the correct answer
-        if user_response == question_item["correct_answer"]:
-            correct_answers_counter += 1
-            print("Correct!")
-        else:
-            print("Incorrect!")
-        clear_screen()
+        while True:
+            if invalid_letter:
+                print("\033[91mInvalid letter chosen, Try Again...\033[0m")
+                user_response = input("\033[97mYour answer: \033[0m").strip().lower()  # Prompt to input answer
+            else:
+                user_response = input("\n\033[97mYour answer: \033[0m").strip().lower()  # Prompt to input answer
 
+            if user_response in ["a", "b", "c", "d"]: # Checks if the user's answer matches the correct answer
+                invalid_letter = False
+                if user_response in question_item["correct_answer"]:
+                    correct_answers_counter += 1
+                    progress += 1
+                    clear_screen()
+                    break
+                else:
+                    progress += 1
+                    clear_screen()
+                    break
+            else:
+                clear_screen()
+                invalid_letter = True
+                break
+
+    loading_animation(300, "\x1b[38;5;37mGetting Results...\x1b[0m...")
     final_score = str(correct_answers_counter) + "/" + str(len(quiz_data))  # format of final_score
-    print("Quiz Complete! Your final score:" + str(final_score))
+    display_logo("start_logo")
+    print(f"\x1b[123mQuiz Complete! Your final score: \x1b[77m{str(final_score)}")
     exit_quiz()
 
 def exit_quiz():
     while True:
-        exit_prompt = input("\nWould you like to try another quiz? (Type 't' to retry or 'e' to exit): ").strip().lower()
+        exit_prompt = input("\nWould you like to open another quiz? (Type 't' to retry or 'e' to exit): ").strip().lower()
         if exit_prompt == "t":
             print("\nExiting current quiz\n")
             main()
@@ -168,19 +190,16 @@ def main():
     display_logo("start_logo")
 
     quiz_data = json.load(open(get_file())) # Get and load quiz file
-    loading_animation(300, "Verifying quiz file structure...")
+    loading_animation(300, "\x1b[38;5;37mVerifying quiz file structure...")
 
-    clear_screen()
-    loading_animation(700, "Quiz file verified successfully")
+    loading_animation(700, "\x1b[38;5;37mQuiz file verified successfully")
     random.shuffle(quiz_data)  # Shuffles the quiz data to randomize question order
 
-    clear_screen()
-    loading_animation(700, "Starting the quiz...")
-
-    clear_screen()
+    loading_animation(700, "\x1b[38;5;37mStarting the quiz...")
     run_quiz(quiz_data)
 
 try:
-    main()
+    if __name__ == "__main__":
+        main()
 except KeyboardInterrupt:
     print("\033[091m\nExiting...\033[0m")
