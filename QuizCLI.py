@@ -29,65 +29,64 @@ def display_logo(logo):
 def loading_animation(duration, message):
     spinner = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
     start_time = time.time() # Record the start time to track the duration
+    total_frames = len(spinner)  # Number of frames in the spinner
+    duration_in_seconds = duration / 1000.0 # Calculate the total time in seconds (allow milliseconds)
+    time_per_frame = duration_in_seconds / total_frames # Calculate time per frame to maintain smooth animation
     while True:
         for i in spinner:
-            print(f"\r{i} {message}", end="") # Print the spinner and message on the same line
-            time.sleep(0.1) # Pause briefly to create the animation effect
+            print(f"\r{i} {message}", end="")  # Print the spinner and message on the same line
+            time.sleep(time_per_frame)  # Pause briefly to create the animation effect
 
         # Check if the total elapsed time has exceeded the specified duration
-        if time.time() - start_time > duration:
+        if time.time() - start_time > duration_in_seconds:
             break
 
 def clear_screen():
     os.system('cls')
 
 # Get and validate a quiz file from the current directory
-def get_file():
+def get_file(error_message=None):
     file_number = 1
-    loading_animation(0.01, "Looking for files in the current directory")
     clear_screen()
     display_logo("start_logo")
-    print("Files in the Current Directory")
+    loading_animation(250, "Scanning current directory for files...")
+    clear_screen()
+    display_logo("start_logo")
+
+    if error_message is not None:
+        print(error_message)
+
+    print("\033[32m\033[01mFiles in the Current Directory\033[0m")
     for files in os.listdir(): # Lists all files in the current directory with numbers
-        print(f"{file_number}. {files}")
+        print(f"{file_number}. \033[093m{files}\033[0m")
         file_number += 1
-
-    while True: # Prompts user until they pick a valid file number
-        try:
-            file_index = int(input("Enter the number corresponding to your quiz file: "))
-        except ValueError: # Handles non-numeric input
-            print("Invalid input. Please enter a number.")
-            continue
-        if file_index == 0 or file_index > len(os.listdir()): # Checks if number is within valid range
-                print("That number doesn't match any file. Please choose a valid number from the list above.")
+    try:
+        file_index = int(input("Enter the number corresponding to your quiz file: "))
+        if file_index == 0 or file_index > len(os.listdir()):  # Checks if number is within valid range
+            return get_file("\033[91mThat number doesn't match any file. Please choose a valid number from the list above.\033[0m")
+        quiz_file = os.listdir()[file_index - 1]  # Gets the file name based on the user selection
+        if not is_json(quiz_file):  # Checks if file is a valid JSON
+            if is_valid_quiz(json.load(open(quiz_file))):  # Checks the quiz file format
+                return quiz_file
+            else:
+                return get_file("The selected file appears to be malformed. Please choose another file.")
+        elif is_json(quiz_file):
+            get_file(is_json(quiz_file))
         else:
-            break
-
-    # Gets the file name based on the user selection
-    quiz_file = os.listdir()[file_index - 1]
-
-    if is_json(quiz_file): # Checks if file is a valid JSON
-        if is_valid_quiz(json.load(open(quiz_file))): # Checks the quiz file format
-            return quiz_file
-        else:
-            print("The selected file appears to be malformed. Please choose another file.")
             return get_file()
-    else:
-        return get_file() # Retry selection if not valid
+    except ValueError:  # Handles non-numeric input
+        return get_file("\033[91mInvalid input. Please enter a number.\033[0m")
 
 # Validates the selected file is a proper JSON quiz file
 def is_json(quiz_file):
     # Ensure file ends with .json extension
-    while not quiz_file.endswith(".json"):
-        print("This is not a JSON file. Please select a file with a .json extension.")
-        return False
-    else:
-        try: # Attempt to load the JSON file
-            json.load(open(quiz_file))
-        except json.decoder.JSONDecodeError: # Handle empty or invalid JSON
-            print("This JSON file is empty or corrupted. Please select a different file.")
-            return False
-        return True
+    if not quiz_file.endswith(".json"):
+        return "This is not a JSON file. Please select a file with a .json extension."
+    try: # Attempt to load the JSON file
+        json.load(open(quiz_file))
+    except json.decoder.JSONDecodeError: # Handle empty or invalid JSON
+        return "This JSON file is empty or corrupted. Please select a different file."
+    return None
 
 # Check if the JSON data contains a valid quiz structure
 def is_valid_quiz(quiz_data):
@@ -129,7 +128,7 @@ def run_quiz(quiz_data):
             print(choice_letter + ". " + question_item["choices"][
                 choice_letter])  # Prints the choice letter and its corresponding answer text
 
-        user_response = input("Enter the correct choice: ")  # Prompt to input answer
+        user_response = input("Your answer")  # Prompt to input answer
         progress += 1
         # Checks if the user's answer matches the correct answer
         if user_response == question_item["correct_answer"]:
@@ -140,18 +139,18 @@ def run_quiz(quiz_data):
         clear_screen()
 
     final_score = str(correct_answers_counter) + "/" + str(len(quiz_data))  # format of final_score
-    print("Your final score is " + str(final_score))
+    print("Quiz Complete! Your final score:" + str(final_score))
     exit_quiz()
 
 def exit_quiz():
     while True:
-        exit_prompt = input("\nTo Try another Quiz? Type 't' for Try Again or 'e' to Exit: ").strip().lower()
+        exit_prompt = input("\nWould you like to try another quiz? (Type 't' to retry or 'e' to exit): ").strip().lower()
         if exit_prompt == "t":
             print("\nExiting current quiz\n")
             main()
             break
         elif exit_prompt == "e":
-            print("\033[091m\nExiting QuizCLI...033[0m")
+            print("\033[091m\nExiting QuizCLI...\033[0m")
             exit()
         else:
             print("\033[91mInvalid input. Please enter 't' to try another Quiz or 'e' to exit.\033[0m")
@@ -161,13 +160,12 @@ def main():
 
     display_logo("start_logo")
     quiz_data = json.load(open(get_file())) # Get and load quiz file
-    loading_animation(0.1, "quiz is valid")
-
+    loading_animation(300, "Verifying quiz file structure...")
     clear_screen()
-
-    loading_animation(1, "quiz is valid")
+    loading_animation(700, "Quiz file verified successfully")
     random.shuffle(quiz_data)  # Shuffles the quiz data to randomize question order
-    loading_animation(1, "Starting Quiz")
+    clear_screen()
+    loading_animation(700, "Starting the quiz...")
 
     clear_screen()
     run_quiz(quiz_data)
