@@ -136,7 +136,7 @@ def progress_bar(quiz_data, progress, bar_length = 50):
 # Main function to run the quiz loop
 def run_quiz(quiz_data):
     correct_answers_counter = 0  # Track how many correct answers
-    progress = 1 # Start from first question
+    progress = 0 # Start from first question
     invalid_letter = False # Flag for invalid user input
 
     while True:
