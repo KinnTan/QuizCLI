@@ -4,6 +4,9 @@
 
 QuizCLI is a command-line quiz runner that reads quiz questions from a JSON file and guides the user through a multiple-choice quiz experience. It includes animations, colored terminal output, a dynamic progress bar, and score reporting at the end. The quiz data must be preformatted and stored as a valid JSON file.
 
+> **To use QuizCLI, you must create your quiz files using [Quiz Builder CLI](https://github.com/KinnTan/quiz_builder_cli).**
+> See [Notes](https://github.com/KinnTan/QuizCLI?tab=readme-ov-file#notes) for the example json structure format
+
 ## Requirements
 
 * Python 3.x
@@ -91,6 +94,8 @@ Quiz Complete! Your final score: 8/10
     }
   ]
   ```
+To easily create files in this format, use [Quiz Builder CLI](https://github.com/KinnTan/quiz_builder_cli).
+
 * Files are validated before use, and malformed or non-JSON files will be rejected.
 * Users can retry with another quiz or exit the program after completing a quiz.
 
