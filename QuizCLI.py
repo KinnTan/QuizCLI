@@ -166,15 +166,23 @@ def run_quiz(quiz_data):
                 invalid_letter = True
                 break
 
+    score_percentage = correct_answers_counter / len(quiz_data)
+    if score_percentage >= 0.8:
+        color = "\033[92m"
+    elif score_percentage >= 0.5:
+        color = "\033[93m"
+    else:
+        color = "\033[91m"
+
     loading_animation(300, "\x1b[38;5;37mGetting Results...\x1b[0m...")
     final_score = str(correct_answers_counter) + "/" + str(len(quiz_data))  # format of final_score
     display_logo("start_logo")
-    print(f"\x1b[123mQuiz Complete! Your final score: \x1b[77m{str(final_score)}")
+    print(f"\x1b[38;5;74mQuiz Complete! Your final score: {color}\033[01m{str(final_score)}\033[0m")
     exit_quiz()
 
 def exit_quiz():
     while True:
-        exit_prompt = input("\nWould you like to open another quiz? (Type 't' to retry or 'e' to exit): ").strip().lower()
+        exit_prompt = input("\n\033[96mWould you like to open another quiz?\033[0m \033[93m(Type 't' to retry or 'e' to exit):\033[0m").strip().lower()
         if exit_prompt == "t":
             print("\nExiting current quiz\n")
             main()
@@ -183,7 +191,7 @@ def exit_quiz():
             print("\033[091m\nExiting QuizCLI...\033[0m")
             exit()
         else:
-            print("\033[91mInvalid input. Please enter 't' to try another Quiz or 'e' to exit.\033[0m")
+            print("\033[91mInvalid input. \033[93mPlease enter 't' to try another Quiz or 'e' to exit.\033[0m")
 
 def main():
     clear_screen()
